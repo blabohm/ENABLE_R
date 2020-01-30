@@ -122,6 +122,14 @@ rasterize.nc <- function(input_dir, output_dir) {
   require(dplyr)
   require(raster)
   
+  # load projection raster
+  proj_rst <-
+    input_dir %>% 
+    list.files(recursive = T,
+               full.names = T,
+               pattern = ".tif$") %>% 
+    grep("LU12",. ,  value = T) %>% 
+    raster()
   # load change and protection files
   lu_change <- 
     input_dir %>% 
@@ -130,7 +138,7 @@ rasterize.nc <- function(input_dir, output_dir) {
                pattern = ".shp$") %>% 
     grep("LUC",. ,  value = T) %>% 
     readOGR()
-  projection(lu_change) <- projection(lu)
+  projection(lu_change) <- projection(proj_rst)
   
   protection <- 
     input_dir %>% 
@@ -139,17 +147,17 @@ rasterize.nc <- function(input_dir, output_dir) {
                pattern = ".shp$") %>% 
     grep("protect",. ,  value = T) %>% 
     readOGR()
-  projection(protection) <- projection(lu)
+  projection(protection) <- projection(proj_rst)
   # create dummy raster
   ext_rst <- raster() 
-  extent(ext_rst) <- extent(lu)
-  res(ext_rst) <- res(lu)
-  projection(ext_rst) <- projection(lu)
+  extent(ext_rst) <- extent(proj_rst)
+  res(ext_rst) <- res(proj_rst)
+  projection(ext_rst) <- projection(proj_rst)
   
   #rasterize shapefiles (est. 5min per shapefile)
-  change_rst <- rasterize(lu_change_rst, 
+  change_rst <- rasterize(lu_change, 
                           ext_rst)
-  prot_rst <- rasterize(protection_rst, 
+  prot_rst <- rasterize(protection, 
                         ext_rst)
   
   #remove NA

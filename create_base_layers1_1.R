@@ -18,7 +18,7 @@ library(dplyr)
 ################################################################################
 
 # city name
-city <- "Stockholm"
+city <- "Lodz"
 # data direction:
 data_dir <- "C:/LandOeko/ENABLE/"
 # input direction
@@ -45,41 +45,39 @@ rstfile <-
   paste0(data_dir,
          city) %>% 
   list.files(recursive = T,
-             full.names = T) %>% 
-  grep("LU_2012.tif",. ,  value = T) %>% 
+             full.names = T,
+             pattern = "*tif$") %>% 
+  grep("LU12",. ,  value = T) %>% 
   .[1]
 
 ## ELSE load land use shape
-lu <- 
-  if (file.exists(rstfile)) rstfile %>% 
-  raster() else input_dir %>% 
+if (file.exists(rstfile)) lu <- 
+  rstfile %>% 
+  raster() else lu <- 
+  paste0(data_dir,
+         city) %>%
   list.files(recursive = T,
              full.names = T,
              pattern = ".shp$") %>% 
-  grep("LU[[:digit:]]",. ,  value = T) %>% 
+  grep("LU12",. ,  value = T) %>% 
   readOGR(stringsAsFactors = F) %>% 
   rasterize.ua(output_dir, .)
 
 
-# causes "Error in .local(.Object, ...) :"
-## reload raster file because ...
-#lu <- 
-#  rstfile %>% 
-#  raster()
-
-## write land-use raster to output folder to create a .prj file
-#writeRaster(lu,
-#            paste0(output_dir,
-#                   "LU_2012.tif"),
-#            datatype = "INT2U",
-#            format = "GTiff",
-#            overwrite = T,
-#            prj = T,
-#            options = c("TFW=YES"))
+## write land-use raster to output folder
+writeRaster(lu,
+            paste0(output_dir,
+                   "LU_2012.tif"),
+            datatype = "INT2U",
+            format = "GTiff",
+            overwrite = T,
+            prj = T,
+            options = c("TFW=YES"))
 
 ## center location
 center <- 
-  input_dir %>% 
+  paste0(data_dir,
+         city) %>%  
   list.files(recursive = T,
              full.names = T,
              pattern = ".shp") %>% 
@@ -275,6 +273,9 @@ writeRaster(d_built2center_ter,
 # Create no change layers
 ################################################################################
 # load lu change and protection files
-
-if (paste0(output_dir, "no_change.tif") %>% 
-    file.exists() == F) rasterize.nc(input_dir, output_dir)
+ 
+if (paste0(input_dir, "no_change.tif") %>% 
+    file.exists() == F & paste0(output_dir, "no_change.tif") %>% 
+    file.exists() == F) rasterize.nc(paste0(data_dir,
+                                            city), 
+                                     output_dir)
