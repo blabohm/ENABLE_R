@@ -1,0 +1,20 @@
+The following files are required by the skript and have to be stored in directory "city-name/input/"
+
+1. City center point as a .shp file
+	center_city-name.shp
+
+2. Distance layers to be produced in QGIS (The raster::distance() function takes way too long to process):
+
+	d2_transport.tif
+	Distance of city area to transport lines (classes 12210 and 12220).
+
+	d2_densres.tif
+	Distance of city area to dense residential classes (classes 11100, 11210 and 11220).
+
+3. Land use change and protect files:
+
+	LU_change.tif
+	Areas that already changed, thus are unlikely to change again
+	
+	LU_protect.tif
+	Areas that won't change due to different reasons
