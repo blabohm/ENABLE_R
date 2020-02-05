@@ -2,8 +2,10 @@
 #
 # This document contains the workflow for creating the base layers required for 
 # the implementation of land-use-change scenarios in QuickScan using urban-
-# atlas data of European cities.
+# atlas data of European cities. 
 # 
+# For a description of which files are required see input_for_r.txt
+# This skript requires the functions.R to be stored in the data directory
 # Created by: Benjamin Labohm, Berlin 2019
 #
 ################################################################################
