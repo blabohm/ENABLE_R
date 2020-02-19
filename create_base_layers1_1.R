@@ -20,7 +20,7 @@ library(dplyr)
 ################################################################################
 
 # city name
-city <- "Lodz"
+city <- "Oslo"
 # data direction:
 data_dir <- "C:/LandOeko/ENABLE/"
 # input direction
@@ -275,9 +275,31 @@ writeRaster(d_built2center_ter,
 # Create no change layers
 ################################################################################
 # load lu change and protection files
- 
+# if there is already a no change file in input directory: copy it to 
+# output directory else create it.
+
 if (paste0(input_dir, "no_change.tif") %>% 
-    file.exists() == F & paste0(output_dir, "no_change.tif") %>% 
-    file.exists() == F) rasterize.nc(paste0(data_dir,
-                                            city), 
-                                     output_dir)
+    file.exists() == T & paste0(output_dir, "no_change.tif") %>% 
+    file.exists() == T) {
+  "All fine!"
+} else if (paste0(input_dir, "no_change.tif") %>% 
+    file.exists() == T & paste0(output_dir, "no_change.tif") %>% 
+    file.exists() == F) {
+  writeRaster(paste0(input_dir, "no_change.tif") %>% raster,
+              paste0(output_dir, "no_change.tif"),
+              datatype = "INT2S",
+              format = "GTiff",
+              overwrite = T)
+} else if (paste0(input_dir, "no_change.tif") %>% 
+           file.exists() == F & paste0(output_dir, "no_change.tif") %>% 
+           file.exists() == T) {
+  writeRaster(paste0(output_dir, "no_change.tif") %>% raster,
+              paste0(input_dir, "no_change.tif"),
+              datatype = "INT2S",
+              format = "GTiff",
+              overwrite = T)
+} else {
+  rasterize.nc(paste0(data_dir,
+                      city), 
+               output_dir)
+}
