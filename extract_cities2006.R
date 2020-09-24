@@ -155,7 +155,7 @@ for (f in z_list[#c(48,50)
 
 write.csv(df, 
           paste0(outdir,
-                 "UA2012_data.csv", 
+                 "UA2006_data.csv", 
                  row.names = F))
 #plot(bound)
 
