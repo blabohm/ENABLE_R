@@ -4,10 +4,10 @@ library(tidyverse)
 library(rgdal)
 
 # empty R's temp directory
-# tempdir() %>%
-#   dirname() %>%
-#   list.files(full.names = T, recursive = T)# %>%
-#   file.remove()
+tempdir() %>%
+  dirname() %>%
+  list.files(full.names = T, recursive = T)# %>%
+  file.remove()
 
 ################################################################################
 # PREPARATION:
@@ -75,14 +75,12 @@ bound <-
   list.files(., 
              recursive = T, 
              full.names = T,
-             #pattern = ".shp$"
              pattern = ".gpkg$"
-             ) %>% 
-  #.[2] %>% 
-  #readOGR()
- readOGR(dsn = .,
-         layer = ogrListLayers(.) %>%
+  ) %>% 
+  readOGR(dsn = .,
+          layer = ogrListLayers(.) %>%
             .[3])
+
 #df <- bound@data
 # 3.)
 # clean up
@@ -95,11 +93,14 @@ clean_up()
 ################################################################################
 # 4.)
 # merge the rest of the boundaries
-for (f in z_list[#c(48, 49,50) 
+for (f in z_list[#c(48, 49, 50) 
                  2:length(z_list)
                  
 ]){
+  #empty temp directory
+  clean_up()
   
+  # unzip element from .zip file list to temp directory
   f %>% 
     unzip(zipfile = ., exdir = tempdir %>% sub("p/", "p", .))
   
@@ -111,6 +112,9 @@ for (f in z_list[#c(48, 49,50)
                full.names = T,
                pattern = ".gpkg$")
 
+  
+
+  try({  
   # boundary layer in gpkg file
   lyr <-
     qpkg %>%
@@ -123,56 +127,50 @@ for (f in z_list[#c(48, 49,50)
     readOGR(.,
             layer = lyr
     )
-  # b <-  
-  #   tempdir %>% 
-  #   list.files(., 
-  #              recursive = T, 
-  #              full.names = T,
-  #              pattern = ".shp$"
-  #              #pattern = ".gpkg$"
-  #   ) %>% 
-  #   .[2] %>% 
-  #   readOGR()
   message("load clear")
-  
-  bound <-
-    b %>%
-      raster::union(., bound)
 
+  # merge files together  
+  #ifelse(
+   # exists("bound"),
+    bound <-
+      raster::bind(bound, b)#,
+    
+    #bound <-
+     # b
+  #)
   message("union clear")
 
-
-# bound@data <-
-#   bound@data %>%
-#   rbind(b@data)
 # df <-
 #   df %>%
 #   rbind(b@data)
-  
-  message("rbind clear")
+# 
+# bound@data <-
+#   df
+ 
+#  message("rbind clear")
   
   # write the boundary layer to file
   writeOGR(obj = bound,
-           dsn = "E:/Results_UA2012/boundaries.shp",
-           layer = "E:/Results_UA2012/boundaries",
+           dsn = "E:/Results_UA2012/urban_core.shp",
+           layer = "E:/Results_UA2012/urban_core",
            driver = "ESRI Shapefile",
            overwrite_layer = T)
   message("save clear")
-  
+      
   # clean up
   clean_up()
-}
+  })}
 
-write.csv(df, 
-          paste0(outdir,
-                 "UA2012_data.csv", 
-                 row.names = F))
+# write.csv(df, 
+#           paste0(outdir,
+#                  "UA2012_data.csv", 
+#                  row.names = F))
 #plot(bound)
 
 ################################################################################
 # write to file after each step
 # merge() ? -> überlappende polygone (union -> cutted)
-# 
+# test for errer condition
 
 # write the boundary layer to file
 # writeOGR(obj = bound,

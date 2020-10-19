@@ -82,8 +82,9 @@ bound <-
   #readOGR()
  readOGR(dsn = .,
          layer = ogrListLayers(.) %>%
-            .[3])
-#df <- bound@data
+            .[2])
+
+df <- bound@data
 # 3.)
 # clean up
 clean_up()
@@ -95,11 +96,14 @@ clean_up()
 ################################################################################
 # 4.)
 # merge the rest of the boundaries
-for (f in z_list[#c(48, 49,50) 
+for (f in z_list[#c(48, 49, 50) 
                  2:length(z_list)
                  
 ]){
+  #empty temp directory
+  clean_up()
   
+  # unzip element from .zip file list to temp directory
   f %>% 
     unzip(zipfile = ., exdir = tempdir %>% sub("p/", "p", .))
   
@@ -115,7 +119,7 @@ for (f in z_list[#c(48, 49,50)
   lyr <-
     qpkg %>%
     ogrListLayers() %>%
-    .[3]
+    .[2]
 
   # load file
   b <-
@@ -123,32 +127,28 @@ for (f in z_list[#c(48, 49,50)
     readOGR(.,
             layer = lyr
     )
-  # b <-  
-  #   tempdir %>% 
-  #   list.files(., 
-  #              recursive = T, 
-  #              full.names = T,
-  #              pattern = ".shp$"
-  #              #pattern = ".gpkg$"
-  #   ) %>% 
-  #   .[2] %>% 
-  #   readOGR()
   message("load clear")
-  
-  bound <-
-    b %>%
-      raster::union(., bound)
 
+  # merge files together  
+  #ifelse(
+   # exists("bound"),
+    bound <-
+      b %>%
+      sf::st_union(bound, .)
+      #raster::union(., bound)#,
+    
+    #bound <-
+     # b
+  #)
   message("union clear")
 
-
-# bound@data <-
-#   bound@data %>%
-#   rbind(b@data)
 # df <-
 #   df %>%
 #   rbind(b@data)
-  
+# 
+# bound@data <-
+#   df
+ 
   message("rbind clear")
   
   # write the boundary layer to file
@@ -172,7 +172,7 @@ write.csv(df,
 ################################################################################
 # write to file after each step
 # merge() ? -> überlappende polygone (union -> cutted)
-# 
+# test for errer condition
 
 # write the boundary layer to file
 # writeOGR(obj = bound,
