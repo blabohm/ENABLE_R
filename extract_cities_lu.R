@@ -25,37 +25,61 @@ library(doParallel)
 # load functions:
 source("C:/Users/labohben/Documents/GitHub/ENABLE_R/extract_lu/functions.R")
 
+t_layer <- "boundary" # target layer (land-use, boundary, ONLY 2012: core)
+
 # set up required directories
 set_up <-
   set.up(
-    base_directory = "E:/",
-    year = 2012,
-    change = F
+    base_directory = "E:/",  # directory storing folder with zip files
+    year = 2006,             # year (2006, 2012, 2006_2012)
+    change = F               # looking at change?
   )
 
-# list of .zip files
+# list all .zip files
 z_list <-
   set_up$indir %>% 
   list.files(full.names = T) 
 
-# bind together layers in parallel
-c <- detectCores() - 1 
-cl <- makeCluster(c)
+# determine number of cores and subtract 
+ncore <- detectCores() - 1
+
+# create equally sized lists of zip files for each core
+list_part <- 
+  BBmisc::chunk(x = z_list[1:24], 
+                n.chunks = ncore)
+
+# unzip, load and bind together all layers in directory in parallel
+cl <- makeCluster(ncore)
 registerDoParallel(cl)
 
 cities <-
-  foreach(z_list[1:24]) %dopar% {
+  foreach(n = 1:ncore) %dopar% {
     require(dplyr)
     require(rgdal)
     require(parallel)
     require(doParallel)
-    combine.shapes(zip_list = z_list,
-                   base_dir = set_up$base_dir,
-                   target_layer = "core") # target layer (land-use, boundary, core)
+    combine.shapes(zip_list = list_part[[n]],
+                   base_dir = set_up$tmpdir_glob,
+                   target_layer = t_layer) 
+  }
+stopCluster(cl)
+
+# combine layers in cities list to one 
+while (length(cities) > 1) {
+  
+  cities <- 
+    combine.shapes2(cities)
   
 }
 
-stopCluster(cl)
+# generate the path to save result
+s_path <- paste0(set_up$outdir,
+                 t_layer)
 
-
+# write the created layer to file
+writeOGR(obj = cities[[1]],
+         dsn = paste0(s_path, ".shp"),
+         layer = s_path,
+         driver = "ESRI Shapefile",
+         overwrite_layer = T)
 

@@ -61,7 +61,7 @@ load.shape <-
            i,
            lyr
   ){
-
+    
     # create temp folder for unzipping
     tmpdir <- 
       paste0(base_dir,
@@ -175,6 +175,7 @@ combine.shapes <-
 is.even <- function(x) x %% 2 == 0
 
 ################################################################################
+cities_loaded <- cities
 
 combine.shapes2 <- function(cities_loaded) {
   
@@ -202,12 +203,13 @@ combine.shapes2 <- function(cities_loaded) {
   cl <- makeCluster(ncore)
   registerDoParallel(cl)
   
-  cities_loaded <-
+  cities_loaded <- 
   foreach(x = i) %dopar% {
     require(dplyr)
     require(rgdal)
     require(parallel)
     require(doParallel)
+    
     cities_loaded[[x]] <-
       raster::bind(cities_loaded[[x]],
                    cities_loaded[[x + 1]])
@@ -218,3 +220,12 @@ combine.shapes2 <- function(cities_loaded) {
   # return bound-together elements
   return(cities_loaded)
 }
+
+while (length(cities_loaded) > 1) {
+  
+  cities_loaded <- 
+    combine.shapes2(cities_loaded)
+  
+}
+
+plot(cities_loaded[[1]])
